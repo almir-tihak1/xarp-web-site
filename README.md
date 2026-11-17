@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Xarp Tec web stranica
 
-## Getting Started
+Nova web stranica xarp-tec.com: Next.js 16 (React 19, TypeScript), izvezena kao **potpuno statični sajt**.
+Nastala je prebacivanjem HTML nacrta (Claude artifakt) u React komponente. Izgled i tekst su isti kao u nacrtu.
 
-First, run the development server:
+## Pokretanje
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # razvoj na http://localhost:3000
+npm run build    # gotov sajt u folderu out/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Sadržaj foldera `out/` se može postaviti na bilo koji hosting: Cloudflare Pages, Netlify, GitHub Pages ili
+obični FTP hosting. Server nije potreban.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Struktura
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+app/
+  (en)/                 engleska verzija: /, /blog/, /blog/<slug>/ ("(en)" se ne vidi u URL-u)
+  de/                   njemačka verzija: /de/, /de/blog/, /de/blog/<slug>/
+  global-not-found.tsx  stranica 404 (ista za oba jezika)
+  globals.css           svi stilovi (preuzeti iz nacrta)
+  fonts.css + fonts/    fontovi Inter, JetBrains Mono, Montserrat — lokalno, ništa se ne učitava s Googlea
+components/
+  SiteLayout.tsx        zajednički okvir: header, footer, animacije
+  HomePage.tsx, BlogIndexPage.tsx, BlogPostPage.tsx   stranice, iste za oba jezika
+  Header, Footer, Hero, About, Services, TechStack, LatestPosts, Contact, ContactForm, ...
+content/blog/*.md       blog članci (Markdown)
+content/legal/en|de/    Privacy Policy / Datenschutzerklärung i Terms & Conditions / Nutzungsbedingungen (Markdown)
+lib/dictionaries/       svi tekstovi sajta: en.ts (engleski) i de.ts (njemački)
+lib/i18n.ts             jezici i linkovi između njih
+lib/site.ts             podaci o firmi i tehnologije (isti na svim jezicima)
+lib/posts.ts            čitanje i sortiranje članaka
+public/images/          slike
+scripts/                popravka za build na Windowsu (pokreće se sama poslije `npm run build`)
+```
 
-## Learn More
+## Jezici (EN / DE)
 
-To learn more about Next.js, take a look at the following resources:
+Engleski je na `/…`, njemački na `/de/…`. Klik na EN / DE u meniju otvara istu stranicu na drugom jeziku.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Tekstovi** su u `lib/dictionaries/en.ts` i `lib/dictionaries/de.ts`, s istim ključevima. Kad promijeniš ili
+  dodaš tekst u `en.ts`, TypeScript (`npm run build`) javlja grešku dok isti ključ ne postoji i u `de.ts`.
+- **Blog članci** postoje samo na engleskom. Na `/de/blog/` su meni, dugmad i datumi na njemačkom, a članak ostaje
+  engleski i označen je s „Nur auf Englisch verfügbar“. Google za te stranice dobije link na englesku verziju.
+- Prevod kategorija bloga (npr. Development → Entwicklung) je u `blog.tags` u `de.ts`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Novi blog članak
 
-## Deploy on Vercel
+Napravi `content/blog/naziv-clanka.md` (ime fajla postaje URL `/blog/naziv-clanka/`):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```markdown
+---
+title: "Naslov članka"
+date: "2026-12-01"
+tags: ["Development"]          # Agile, Development, Scrum, Teambuilding... nova kategorija se sama pojavi u filteru
+hero: "/images/moja-slika.jpg" # slika stavi u public/images/
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Tekst članka u **Markdownu**.
+```
+
+Neobavezna polja su `excerpt` (kratki opis na kartici, inače se uzme početak teksta), `description` (za Google),
+`cover` (slika na kartici, inače `hero`), `gallery` (lista slika ispod članka) i `readingTime`.
+
+## Prije objave
+
+- **Kontakt forma**: bez podešavanja otvara posjetiocu email program (kao u nacrtu). Da bi slala poruke,
+  postavi `NEXT_PUBLIC_CONTACT_ENDPOINT` (vidi `.env.example`), npr. na Formspree, Web3Forms ili vlastiti API.
+- **Pravni tekstovi** (`content/legal/en|de/`) su preuzeti doslovno sa stranica `/privacy-policy` i
+  `/terms-conditions` starog sajta (EN i DE). Tekst se mijenja direktno u tim Markdown fajlovima. Ako ima
+  više `## ` naslova, lijevo se sam pojavi sadržaj, a polje `updated: "2026-12-01"` u zaglavlju prikazuje datum.
+- Stari URL-ovi članaka trebaju 301 preusmjerenje na nove (`/blog/<slug>/`), ako se razlikuju.
