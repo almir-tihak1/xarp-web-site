@@ -1,75 +1,98 @@
-# Xarp Tec web stranica
+# Xarp Tec website
 
-Nova web stranica xarp-tec.com: Next.js 16 (React 19, TypeScript), izvezena kao **potpuno statični sajt**.
-Nastala je prebacivanjem HTML nacrta (Claude artifakt) u React komponente. Izgled i tekst su isti kao u nacrtu.
+The new xarp-tec.com website: Next.js 16 (React 19, TypeScript), exported as a **fully static site**.
+It was built by turning an HTML draft (a Claude artifact) into React components. The design and texts match the draft.
 
-## Pokretanje
+## Getting started
 
 ```bash
 npm install
-npm run dev      # razvoj na http://localhost:3000
-npm run build    # gotov sajt u folderu out/
+npm run dev      # development server on http://localhost:3000
+npm run build    # finished site in the out/ folder
 ```
 
-Sadržaj foldera `out/` se može postaviti na bilo koji hosting: Cloudflare Pages, Netlify, GitHub Pages ili
-obični FTP hosting. Server nije potreban.
+The contents of `out/` can be uploaded to any static host: GitHub Pages, Cloudflare Pages, Netlify or plain FTP
+hosting. No server is needed.
 
-## Struktura
+## Publishing (GitHub Pages)
+
+`.github/workflows/deploy-pages.yml` builds the site and publishes it on GitHub Pages after every push to `main`,
+including a new blog post added through the GitHub website or Pages CMS.
+
+One-time setup in the repository:
+
+1. The repository must be **public** (GitHub Pages for private repositories needs a paid plan).
+2. Settings → Pages → Build and deployment → Source: **GitHub Actions**.
+3. Actions → "Deploy to GitHub Pages" → **Run workflow** (or push to `main`).
+
+The address is shown in Settings → Pages. For a repository such as `owner/xarp-web-site` it is
+`https://owner.github.io/xarp-web-site/`; the workflow passes that sub-folder to the build (`PAGES_BASE_PATH`),
+so links and images work there as well as on a custom domain.
+
+Optional: to make the contact form send messages, add a repository variable `CONTACT_ENDPOINT`
+(Settings → Secrets and variables → Actions → Variables), see "Before going live" below.
+
+## Structure
 
 ```
 app/
-  (en)/                 engleska verzija: /, /blog/, /blog/<slug>/ ("(en)" se ne vidi u URL-u)
-  de/                   njemačka verzija: /de/, /de/blog/, /de/blog/<slug>/
-  global-not-found.tsx  stranica 404 (ista za oba jezika)
-  globals.css           svi stilovi (preuzeti iz nacrta)
-  fonts.css + fonts/    fontovi Inter, JetBrains Mono, Montserrat — lokalno, ništa se ne učitava s Googlea
+  (en)/                 English version: /, /blog/, /blog/<slug>/ ("(en)" does not appear in the URL)
+  de/                   German version: /de/, /de/blog/, /de/blog/<slug>/
+  global-not-found.tsx  404 page (shared by both languages)
+  globals.css           all styles (taken from the draft)
+  fonts.css + fonts/    Inter, JetBrains Mono, Montserrat fonts — served locally, nothing is loaded from Google
 components/
-  SiteLayout.tsx        zajednički okvir: header, footer, animacije
-  HomePage.tsx, BlogIndexPage.tsx, BlogPostPage.tsx   stranice, iste za oba jezika
+  SiteLayout.tsx        shared frame: header, footer, animations
+  HomePage.tsx, BlogIndexPage.tsx, BlogPostPage.tsx   pages, shared by both languages
   Header, Footer, Hero, About, Services, TechStack, LatestPosts, Contact, ContactForm, ...
-content/blog/*.md       blog članci (Markdown)
-content/legal/en|de/    Privacy Policy / Datenschutzerklärung i Terms & Conditions / Nutzungsbedingungen (Markdown)
-lib/dictionaries/       svi tekstovi sajta: en.ts (engleski) i de.ts (njemački)
-lib/i18n.ts             jezici i linkovi između njih
-lib/site.ts             podaci o firmi i tehnologije (isti na svim jezicima)
-lib/posts.ts            čitanje i sortiranje članaka
-public/images/          slike
-scripts/                popravka za build na Windowsu (pokreće se sama poslije `npm run build`)
+content/blog/*.md       blog posts (Markdown)
+content/legal/en|de/    Privacy Policy / Datenschutzrichtlinie and Terms & Conditions / Allgemeine Geschäftsbedingungen (Markdown)
+lib/dictionaries/       all site texts: en.ts (English) and de.ts (German)
+lib/i18n.ts             languages and links between them
+lib/base-path.ts        sub-folder prefix for images and plain links (GitHub Pages)
+lib/site.ts             company details and technologies (the same in every language)
+lib/posts.ts            reading and sorting blog posts
+public/images/          images
+scripts/                fix for the build on Windows (runs by itself after `npm run build`)
+.github/workflows/      GitHub Pages deployment
 ```
 
-## Jezici (EN / DE)
+## Languages (EN / DE)
 
-Engleski je na `/…`, njemački na `/de/…`. Klik na EN / DE u meniju otvara istu stranicu na drugom jeziku.
+English lives at `/…`, German at `/de/…`. Clicking EN / DE in the menu opens the same page in the other language.
 
-- **Tekstovi** su u `lib/dictionaries/en.ts` i `lib/dictionaries/de.ts`, s istim ključevima. Kad promijeniš ili
-  dodaš tekst u `en.ts`, TypeScript (`npm run build`) javlja grešku dok isti ključ ne postoji i u `de.ts`.
-- **Blog članci** postoje samo na engleskom. Na `/de/blog/` su meni, dugmad i datumi na njemačkom, a članak ostaje
-  engleski i označen je s „Nur auf Englisch verfügbar“. Google za te stranice dobije link na englesku verziju.
-- Prevod kategorija bloga (npr. Development → Entwicklung) je u `blog.tags` u `de.ts`.
+- **Texts** are in `lib/dictionaries/en.ts` and `lib/dictionaries/de.ts`, with the same keys. When you change or add
+  a text in `en.ts`, TypeScript (`npm run build`) reports an error until the same key exists in `de.ts` too.
+- **Blog posts** exist in English only. On `/de/blog/` the menu, buttons and dates are German, while the post stays
+  English and is marked "Nur auf Englisch verfügbar". Search engines are pointed at the English version of these pages.
+- Translations of blog categories (e.g. Development → Entwicklung) are in `blog.tags` in `de.ts`.
 
-## Novi blog članak
+## New blog post
 
-Napravi `content/blog/naziv-clanka.md` (ime fajla postaje URL `/blog/naziv-clanka/`):
+Create `content/blog/post-name.md` (the file name becomes the URL `/blog/post-name/`):
 
 ```markdown
 ---
-title: "Naslov članka"
+title: "Post title"
 date: "2026-12-01"
-tags: ["Development"]          # Agile, Development, Scrum, Teambuilding... nova kategorija se sama pojavi u filteru
-hero: "/images/moja-slika.jpg" # slika stavi u public/images/
+tags: ["Development"]          # Agile, Development, Scrum, Teambuilding... a new category shows up in the filter by itself
+hero: "/images/my-image.jpg"   # put the image in public/images/
 ---
 
-Tekst članka u **Markdownu**.
+Post text in **Markdown**.
 ```
 
-Neobavezna polja su `excerpt` (kratki opis na kartici, inače se uzme početak teksta), `description` (za Google),
-`cover` (slika na kartici, inače `hero`), `gallery` (lista slika ispod članka) i `readingTime`.
+Optional fields are `excerpt` (short teaser on the card, otherwise the start of the text is used), `description`
+(for search engines), `cover` (image on the card, otherwise `hero`), `gallery` (list of images below the post) and
+`readingTime`.
 
-## Prije objave
+## Before going live
 
-- **Kontakt forma**: bez podešavanja otvara posjetiocu email program (kao u nacrtu). Da bi slala poruke,
-  postavi `NEXT_PUBLIC_CONTACT_ENDPOINT` (vidi `.env.example`), npr. na Formspree, Web3Forms ili vlastiti API.
-- **Pravni tekstovi** (`content/legal/en|de/`) su preuzeti doslovno sa stranica `/privacy-policy` i
-  `/terms-conditions` starog sajta (EN i DE). Tekst se mijenja direktno u tim Markdown fajlovima. Ako ima
-  više `## ` naslova, lijevo se sam pojavi sadržaj, a polje `updated: "2026-12-01"` u zaglavlju prikazuje datum.
-- Stari URL-ovi članaka trebaju 301 preusmjerenje na nove (`/blog/<slug>/`), ako se razlikuju.
+- **Contact form**: without configuration it opens the visitor's email app (as in the draft). To make it send
+  messages, set `NEXT_PUBLIC_CONTACT_ENDPOINT` (see `.env.example`), e.g. to Formspree, Web3Forms or your own API.
+- **Legal texts** (`content/legal/en|de/`) are copied word for word from the `/privacy-policy` and
+  `/terms-conditions` pages of the old site (EN and DE). Edit the text directly in those Markdown files. With more
+  than one `## ` heading a table of contents appears on the left automatically, and an `updated: "2026-12-01"` field
+  in the frontmatter shows a date.
+- Old Wix article URLs (`/post/<slug>`) still need to lead to the new ones (`/blog/<slug>/`). GitHub Pages cannot
+  send 301 redirects, so this needs redirect pages or a host that supports redirects.
